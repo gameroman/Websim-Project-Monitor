@@ -2,7 +2,7 @@ import * as path from "node:path";
 
 import type config from "#config";
 
-export type Config = typeof config;
+type Config = typeof config;
 
 const CONFIG_PATH = path.join(process.cwd(), "config.json");
 
