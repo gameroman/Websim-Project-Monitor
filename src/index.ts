@@ -1,19 +1,26 @@
-import { processProjectRevision } from "./project-revision";
-
-import { is_jwt_expired, cookie } from "./cookie-manager";
-
-import type { ProjectsRevisionsData, ProjectsCommentsData, WebsimComment } from "websim";
+import type {
+  ProjectsRevisionsData,
+  ProjectsCommentsData,
+  WebsimComment,
+} from "websim";
 
 import config from "#config";
 
+import { is_jwt_expired, cookie } from "./cookie-manager";
+import { processProjectRevision } from "./project-revision";
+
 function getHeaders() {
-  const headers = { "Content-Type": "application/json", cookie: cookie.get() } as const;
+  const headers = {
+    "Content-Type": "application/json",
+    cookie: cookie.get(),
+  } as const;
   return headers;
 }
 
 async function fetchLatestRevisions(project_id: string) {
   const headers = getHeaders();
-  const url_revisions = `${config.base_url}/api/v1/projects/${project_id}/revisions` as const;
+  const url_revisions =
+    `${config.base_url}/api/v1/projects/${project_id}/revisions` as const;
   const resp = await fetch(url_revisions, { headers });
 
   const resp_json: unknown = await resp.clone().json();
@@ -24,7 +31,9 @@ async function fetchLatestRevisions(project_id: string) {
   }
 
   if (resp.status !== 200) {
-    console.error(`Fetch revisions failed: ${resp.status}, Body: ${await resp.text()}`);
+    console.error(
+      `Fetch revisions failed: ${resp.status}, Body: ${await resp.text()}`,
+    );
     return;
   }
 
@@ -48,7 +57,10 @@ async function fetchLatestRevisions(project_id: string) {
   return { owner_id };
 }
 
-async function fetchComments(project_id: string, { owner_id }: { owner_id: string }) {
+async function fetchComments(
+  project_id: string,
+  { owner_id }: { owner_id: string },
+) {
   const headers = getHeaders();
   const url_comments = `${config.base_url}/api/v1/projects/${project_id}/comments`;
   const resp = await fetch(url_comments, { headers });
@@ -61,7 +73,9 @@ async function fetchComments(project_id: string, { owner_id }: { owner_id: strin
   }
 
   if (resp.status !== 200) {
-    console.error(`Fetch comments failed: ${resp.status}, Body: ${await resp.text()}`);
+    console.error(
+      `Fetch comments failed: ${resp.status}, Body: ${await resp.text()}`,
+    );
     return;
   }
 
@@ -81,7 +95,12 @@ async function fetchComments(project_id: string, { owner_id }: { owner_id: strin
     if (c.pinned) continue;
 
     // last comment before replied
-    if (await checkRepliesForExistingAutoResponse(project_id, { comment_id: c.id, owner_id })) {
+    if (
+      await checkRepliesForExistingAutoResponse(project_id, {
+        comment_id: c.id,
+        owner_id,
+      })
+    ) {
       break;
     }
 
@@ -97,7 +116,9 @@ async function fetchComments(project_id: string, { owner_id }: { owner_id: strin
   const raw_content = comment.raw_content;
   const author = comment.author;
 
-  console.info(`[Monitor] First comment by ${author.username}: "${raw_content}"`);
+  console.info(
+    `[Monitor] First comment by ${author.username}: "${raw_content}"`,
+  );
 
   return { comment_id, raw_content };
 }
@@ -115,7 +136,9 @@ async function checkRepliesForExistingAutoResponse(
   }
 
   if (resp.status !== 200) {
-    console.error(`Fetch replies failed: ${resp.status}, Body: ${await resp.text()}`);
+    console.error(
+      `Fetch replies failed: ${resp.status}, Body: ${await resp.text()}`,
+    );
     return true;
   }
 
@@ -123,7 +146,8 @@ async function checkRepliesForExistingAutoResponse(
 
   const already_replied = comments.data.some(({ comment }) => {
     return (
-      comment.author.id === owner_id && comment.raw_content?.includes(config.auto_response_prefix)
+      comment.author.id === owner_id &&
+      comment.raw_content?.includes(config.auto_response_prefix)
     );
   });
 
@@ -150,7 +174,12 @@ async function checkAndRespond(project_id: string) {
     const { comment_id, raw_content } = comments;
 
     // Step 3: Check replies for existing auto response
-    if (await checkRepliesForExistingAutoResponse(project_id, { comment_id, owner_id })) {
+    if (
+      await checkRepliesForExistingAutoResponse(project_id, {
+        comment_id,
+        owner_id,
+      })
+    ) {
       return;
     }
 
@@ -185,7 +214,9 @@ async function checkAndRespond(project_id: string) {
 }
 
 async function monitorProject(project_id: string) {
-  console.info(`[Monitor] Starting automatic monitor for project ${project_id}`);
+  console.info(
+    `[Monitor] Starting automatic monitor for project ${project_id}`,
+  );
 
   while (true) {
     await checkAndRespond(project_id);

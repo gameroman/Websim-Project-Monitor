@@ -1,13 +1,19 @@
-import config from "#config";
 import type { ProjectData, ProjectsRevisionData } from "websim";
+
+import config from "#config";
+
 import { cookie } from "./cookie-manager";
 
 /**
  * Generates a random alphanumeric site ID of given length.
  */
 function generateSiteId(length: number = 17): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  return Array.from(
+    { length },
+    () => chars[Math.floor(Math.random() * chars.length)],
+  ).join("");
 }
 
 /**
@@ -76,7 +82,12 @@ async function createDraftSite(
     model_id,
     revision_version,
     revision_id,
-  }: { prompt: string; model_id: string; revision_version: number; revision_id: string },
+  }: {
+    prompt: string;
+    model_id: string;
+    revision_version: number;
+    revision_id: string;
+  },
 ) {
   const site_id = generateSiteId();
   console.info(`[ProjectRevision] Generated site ID: ${site_id}`);
@@ -84,7 +95,9 @@ async function createDraftSite(
 
   // # Extra Step: Enable optional features
   const enableMultiplayer = prompt.toLowerCase().includes("multiplayer");
-  const enableDB = prompt.toLowerCase().includes("database") || prompt.toLowerCase().includes("db");
+  const enableDB =
+    prompt.toLowerCase().includes("database") ||
+    prompt.toLowerCase().includes("db");
 
   // # Construct Final Payload
   const payload = {
@@ -104,7 +117,13 @@ async function createDraftSite(
         enableLLM: false,
         enableLLM2: true,
         enableTweaks: false,
-        features: { context: true, errors: true, htmx: true, images: true, navigation: true },
+        features: {
+          context: true,
+          errors: true,
+          htmx: true,
+          images: true,
+          navigation: true,
+        },
       },
     },
     project_id,
@@ -175,14 +194,26 @@ async function updateProjectCurrentVersion(
     throw new ProjectRevisionError(msg);
   }
 
-  console.info(`[ProjectRevision] Updated project current version to: ${revision_version}`);
+  console.info(
+    `[ProjectRevision] Updated project current version to: ${revision_version}`,
+  );
 }
 
-export async function processProjectRevision(project_id: string, prompt: string, model_id: string) {
-  const headers = { "Content-Type": "application/json", cookie: cookie.get() } as const;
+export async function processProjectRevision(
+  project_id: string,
+  prompt: string,
+  model_id: string,
+) {
+  const headers = {
+    "Content-Type": "application/json",
+    cookie: cookie.get(),
+  } as const;
 
   // # 1) Fetch current project info
-  const { parent_version } = await fetchCurrentProjectInfo({ project_id, headers });
+  const { parent_version } = await fetchCurrentProjectInfo({
+    project_id,
+    headers,
+  });
 
   // # 2) Create new revision
   const { revision_id, revision_version } = await createNewRevision(
@@ -200,7 +231,10 @@ export async function processProjectRevision(project_id: string, prompt: string,
   await confirmDraft({ project_id, headers }, { revision_version });
 
   // # 5) Update project current version
-  await updateProjectCurrentVersion({ project_id, headers }, { revision_version });
+  await updateProjectCurrentVersion(
+    { project_id, headers },
+    { revision_version },
+  );
 
   return { revision_id, revision_version, site_id } as const;
 }

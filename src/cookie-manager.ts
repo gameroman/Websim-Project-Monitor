@@ -1,16 +1,24 @@
 import config from "#config";
+
 import { loadConfig, updateConfig } from "./config-manager";
 
 /**
  * Makes a GET request to `base_url` and refreshes cookies if the server returns Set-Cookie headers.
  * Updates both in-memory cookies and `config.json`.
  */
-async function refreshCookies(base_url: string, cookie: string): Promise<string | undefined> {
+async function refreshCookies(
+  base_url: string,
+  cookie: string,
+): Promise<string | undefined> {
   try {
-    console.info("[CookieManager] Attempting to refresh cookies from base URL...");
+    console.info(
+      "[CookieManager] Attempting to refresh cookies from base URL...",
+    );
     const resp = await fetch(base_url, { headers: { cookie } });
     if (!resp.ok) {
-      console.error(`[CookieManager] Failed to refresh cookies: status ${resp.status}`);
+      console.error(
+        `[CookieManager] Failed to refresh cookies: status ${resp.status}`,
+      );
       return;
     }
 
